@@ -1,6 +1,7 @@
 use bevy::input::keyboard::KeyCode;
 use bevy::input::Input;
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
+use rand::Rng;
 
 const MAX_SHARK_VELOCITY: f64 = 50.;
 const MAX_PLAYER_VELOCITY: f64 = 50.;
@@ -45,7 +46,9 @@ fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials
     ));
 }
 
-fn move_player(time: Res<Time>, input: Res<Input<KeyCode>>, mut player_query: Query<(&mut Boat, &mut Transform)>) {
+fn move_player(time: Res<Time>, mut commands: Commands, input: Res<Input<KeyCode>>, 
+    mut player_query: Query<(&mut Boat, &mut Transform)>, 
+    mut fish_query: Query<(Entity, &Fish)>) {
     let time_delta = time.delta_seconds_f64();
     let (mut player, mut transform) = player_query.single_mut();
 
@@ -76,9 +79,19 @@ fn move_player(time: Res<Time>, input: Res<Input<KeyCode>>, mut player_query: Qu
 
     transform.translation.x = player.state.position.0 as f32;
     transform.translation.y = player.state.position.1 as f32;
+
+    // Remove fish if player collides with them
+    for (fish_entity, fish) in fish_query.iter_mut() {
+        if fish.state.position.0 - player.state.position.0 < 10. && 
+        fish.state.position.0 - player.state.position.0 > -10. && 
+        fish.state.position.1 - player.state.position.1 < 10. && 
+        fish.state.position.1 - player.state.position.1 > -10. {
+            commands.entity(fish_entity).despawn(); 
+            break;
+        }
+
+    }
 }
-
-
 
 fn move_sharks(time: Res<Time>, mut shark_query: Query<(&mut Shark, &mut Transform)>, player_query: Query<&Boat>) {
     let player = player_query.single();
@@ -105,8 +118,24 @@ fn move_sharks(time: Res<Time>, mut shark_query: Query<(&mut Shark, &mut Transfo
     }
 }
 
-fn spawn_fish() {
-    {}
+fn spawn_fish(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>, fish_query: Query<&Fish>, window: Query<&Window>) {
+
+    if fish_query.iter().count() < 10 {
+        let window_width_half = window.single().width() / 2.;
+        let window_height_half = window.single().height() / 2.;
+        let mut rng = rand::thread_rng();
+        let x = rng.gen_range(-window_width_half..window_width_half);
+        let y = rng.gen_range(-window_height_half..window_height_half);
+        commands.spawn((
+            MaterialMesh2dBundle {
+                mesh: meshes.add(shape::Quad::new(Vec2::new(10., 10.)).into()).into(),
+                material: materials.add(ColorMaterial::from(Color::BLUE)),
+                transform: Transform::from_translation(Vec3::new(x, y, 0.)),
+                ..default()
+            },
+            Fish {state: State {position: Position(x as f64, y as f64), velocity: Velocity(0., 0.)}},
+        ));
+    }
 }
 
 fn check_if_game_over() {
