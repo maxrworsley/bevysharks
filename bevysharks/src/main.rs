@@ -1,6 +1,10 @@
+use bevy::input::keyboard::KeyCode;
+use bevy::input::Input;
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 
-const MAX_SHARK_VELOCITY: f64 = 30.;
+const MAX_SHARK_VELOCITY: f64 = 50.;
+const MAX_PLAYER_VELOCITY: f64 = 50.;
+const PLAYER_CHANGE_VELOCITY: f64 = 10.;
 
 fn main() {
     App::new()
@@ -41,9 +45,40 @@ fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials
     ));
 }
 
-fn move_player() {
-    {}
+fn move_player(time: Res<Time>, input: Res<Input<KeyCode>>, mut player_query: Query<(&mut Boat, &mut Transform)>) {
+    let time_delta = time.delta_seconds_f64();
+    let (mut player, mut transform) = player_query.single_mut();
+
+    let mut velocity = Vec2::ZERO;
+    if input.pressed(KeyCode::W) {
+        velocity.y += 1.0;
+    }
+    if input.pressed(KeyCode::S) {
+        velocity.y -= 1.0;
+    }
+    if input.pressed(KeyCode::A) {
+        velocity.x -= 1.0;
+    }
+    if input.pressed(KeyCode::D) {
+        velocity.x += 1.0;
+    }
+
+    velocity.x *= MAX_PLAYER_VELOCITY as f32;
+    velocity.y *= MAX_PLAYER_VELOCITY as f32;
+    player.state.velocity.add_velocity(velocity);
+    player.state.position.0 += player.state.velocity.0 * time_delta;
+    player.state.position.1 += player.state.velocity.1 * time_delta;
+
+    if player.state.velocity.0 > MAX_PLAYER_VELOCITY {player.state.velocity.0 = MAX_PLAYER_VELOCITY;}
+    if player.state.velocity.0 < -MAX_PLAYER_VELOCITY {player.state.velocity.0 = -MAX_PLAYER_VELOCITY;}
+    if player.state.velocity.1 > MAX_PLAYER_VELOCITY {player.state.velocity.1 = MAX_PLAYER_VELOCITY;}
+    if player.state.velocity.1 < -MAX_PLAYER_VELOCITY {player.state.velocity.1 = -MAX_PLAYER_VELOCITY;}
+
+    transform.translation.x = player.state.position.0 as f32;
+    transform.translation.y = player.state.position.1 as f32;
 }
+
+
 
 fn move_sharks(time: Res<Time>, mut shark_query: Query<(&mut Shark, &mut Transform)>, player_query: Query<&Boat>) {
     let player = player_query.single();
@@ -84,6 +119,13 @@ struct Position(f64, f64);
 
 #[derive(Component)]
 struct Velocity(f64, f64);
+
+impl Velocity {
+    fn add_velocity(&mut self, velocity: Vec2) {
+        self.0 += velocity.x as f64;
+        self.1 += velocity.y as f64;
+    }
+}
 
 #[derive(Component)]
 struct State {position: Position, velocity: Velocity }
