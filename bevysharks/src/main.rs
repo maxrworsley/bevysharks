@@ -27,7 +27,7 @@ fn spawn_fish() {
     todo!();
 }
 
-fn check_game_over() {
+fn check_if_game_over() {
     todo!();
 }
 
