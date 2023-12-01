@@ -2,9 +2,10 @@ use bevy::prelude::Component;
 use rand::Rng;
 
 pub const MAX_SHARK_VELOCITY: f64 = 90.;
-pub const MAX_PLAYER_VELOCITY: f64 = 60.;
-pub const MAX_PLAYER_ACCELERATION: f64 = 5.;
+pub const MAX_PLAYER_VELOCITY: f64 = 20.;
+pub const MAX_PLAYER_ACCELERATION: f64 = 9.;
 pub const MAX_FISH_COUNT: usize = 10;
+pub const CHANGE_FACTOR: f64 = 8.;
 
 // Components
 #[derive(Component)]
@@ -29,7 +30,9 @@ pub struct Acceleration(pub f64, pub f64);
 pub struct State {
     pub position: Position, 
     pub velocity: Velocity,
-    pub acceleration: Acceleration
+    pub acceleration: Acceleration,
+    max_velocity: f64,
+    max_acceleration: f64
 }
 
 impl State {
@@ -37,7 +40,9 @@ impl State {
         State {
             position: Position(0., 0.), 
             velocity: Velocity(0., 0.),
-            acceleration: Acceleration(0., 0.)
+            acceleration: Acceleration(0., 0.),
+            max_velocity: MAX_PLAYER_VELOCITY,
+            max_acceleration: MAX_PLAYER_ACCELERATION
         }
     }
 
@@ -45,7 +50,32 @@ impl State {
         State {
             position: position, 
             velocity: Velocity(0., 0.),
-            acceleration: Acceleration(0., 0.)
+            acceleration: Acceleration(0., 0.),
+            max_velocity: MAX_PLAYER_VELOCITY,
+            max_acceleration: MAX_PLAYER_ACCELERATION
         }
+    }
+
+    pub fn apply_acceleration(&mut self, change_x: f64, change_y: f64, time_delta: f64) {
+        self.acceleration.0 += change_x * time_delta * CHANGE_FACTOR;
+        self.acceleration.1 += change_y * time_delta * CHANGE_FACTOR;
+        if self.acceleration.0 > self.max_acceleration {self.acceleration.0 = self.max_acceleration;}
+        if self.acceleration.0 < -self.max_acceleration {self.acceleration.0 = -self.max_acceleration;}
+        if self.acceleration.1 > self.max_acceleration {self.acceleration.1 = self.max_acceleration;}
+        if self.acceleration.1 < -self.max_acceleration {self.acceleration.1 = -self.max_acceleration;}
+    }
+
+    pub fn apply_acceleration_to_velocity(&mut self, time_delta: f64) {
+        self.velocity.0 += self.acceleration.0 * time_delta * CHANGE_FACTOR;
+        self.velocity.1 += self.acceleration.1 * time_delta * CHANGE_FACTOR; 
+        if self.velocity.0 > self.max_velocity {self.velocity.0 = self.max_velocity;}
+        if self.velocity.0 < -self.max_velocity {self.velocity.0 = -self.max_velocity;}
+        if self.velocity.1 > self.max_velocity {self.velocity.1 = self.max_velocity;}
+        if self.velocity.1 < -self.max_velocity {self.velocity.1 = -self.max_velocity;}
+    }
+
+    pub fn apply_velocity_to_position(&mut self, time_delta: f64) {
+        self.position.0 += self.velocity.0 * time_delta * CHANGE_FACTOR;
+        self.position.1 += self.velocity.1 * time_delta * CHANGE_FACTOR;
     }
 }

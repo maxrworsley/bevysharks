@@ -9,39 +9,22 @@ pub fn move_player(time: Res<Time>, mut commands: Commands, input: Res<Input<Key
 
     let mut acceleration = Vec2::ZERO;
     if input.pressed(KeyCode::W) {
-        acceleration.y += 1.0;
+        acceleration.y += 10.;
     }
     if input.pressed(KeyCode::S) {
-        acceleration.y -= 1.0;
+        acceleration.y -= 10.;
     }
     if input.pressed(KeyCode::A) {
-        acceleration.x -= 1.0;
+        acceleration.x -= 10.;
     }
     if input.pressed(KeyCode::D) {
-        acceleration.x += 1.0;
+        acceleration.x += 10.;
     }
 
-    // Update acceleration
-    player.state.acceleration.0 += acceleration.x as f64;
-    player.state.acceleration.1 += acceleration.y as f64;
-    if player.state.acceleration.0 > base_components::MAX_PLAYER_ACCELERATION {player.state.acceleration.0 = base_components::MAX_PLAYER_ACCELERATION;}
-    if player.state.acceleration.0 < -base_components::MAX_PLAYER_ACCELERATION {player.state.acceleration.0 = -base_components::MAX_PLAYER_ACCELERATION;}
-    if player.state.acceleration.1 > base_components::MAX_PLAYER_ACCELERATION {player.state.acceleration.1 = base_components::MAX_PLAYER_ACCELERATION;}
-    if player.state.acceleration.1 < -base_components::MAX_PLAYER_ACCELERATION {player.state.acceleration.1 = -base_components::MAX_PLAYER_ACCELERATION;}
-
-    // Update velocity
-    player.state.velocity.0 += acceleration.x as f64;
-    player.state.velocity.1 += acceleration.y as f64;
-
-    // Update position
-    player.state.position.0 += player.state.velocity.0 * time_delta;
-    player.state.position.1 += player.state.velocity.1 * time_delta;
-
-    if player.state.velocity.0 > base_components::MAX_PLAYER_VELOCITY {player.state.velocity.0 = base_components::MAX_PLAYER_VELOCITY;}
-    if player.state.velocity.0 < -base_components::MAX_PLAYER_VELOCITY {player.state.velocity.0 = -base_components::MAX_PLAYER_VELOCITY;}
-    if player.state.velocity.1 > base_components::MAX_PLAYER_VELOCITY {player.state.velocity.1 = base_components::MAX_PLAYER_VELOCITY;}
-    if player.state.velocity.1 < -base_components::MAX_PLAYER_VELOCITY {player.state.velocity.1 = -base_components::MAX_PLAYER_VELOCITY;}
-
+    player.state.apply_acceleration(acceleration.x as f64, acceleration.y  as f64, time_delta);
+    player.state.apply_acceleration_to_velocity(time_delta);
+    player.state.apply_velocity_to_position(time_delta);
+    
     transform.translation.x = player.state.position.0 as f32;
     transform.translation.y = player.state.position.1 as f32;
 
