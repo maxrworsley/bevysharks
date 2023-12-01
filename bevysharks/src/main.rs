@@ -6,7 +6,6 @@ use rand::Rng;
 const MAX_SHARK_VELOCITY: f64 = 90.;
 const MAX_PLAYER_VELOCITY: f64 = 60.;
 const MAX_PLAYER_ACCELERATION: f64 = 5.;
-const PLAYER_CHANGE_VELOCITY: f64 = 20.;
 const MAX_FISH_COUNT: usize = 10;
 
 fn main() {
@@ -134,7 +133,7 @@ fn move_sharks(time: Res<Time>, mut shark_query: Query<(&mut Shark, &mut Transfo
         if shark.state.velocity.0 < -per_shark_velocity_cap {shark.state.velocity.0 = -per_shark_velocity_cap;}
         if shark.state.velocity.1 > per_shark_velocity_cap {shark.state.velocity.1 = per_shark_velocity_cap;}
         if shark.state.velocity.1 < -per_shark_velocity_cap {shark.state.velocity.1 = -per_shark_velocity_cap;}
-        transform.rotation = Quat::from_rotation_z(angle as f32);
+        transform.rotation = Quat::from_rotation_z(angle as f32 - (std::f32::consts::PI / 2.));
 
         // If shark is touching player, kill player
         if shark.state.position.0 - player.state.position.0 < 10. &&
@@ -180,7 +179,7 @@ fn spawn_sharks(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut ma
             MaterialMesh2dBundle {
                 mesh: meshes.add(shape::Quad::new(Vec2::new(10., 40.)).into()).into(),
                 material: materials.add(ColorMaterial::from(Color::RED)),
-                transform: Transform::from_translation(Vec3::new(200., 0., 0.)),
+                transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
                 ..default()
             },
             Shark {state: State {position: Position(x as f64, y as f64), velocity: Velocity(10., 10.)}},
@@ -205,7 +204,7 @@ fn update_hunger(time: Res<Time>, mut commands: Commands, mut meshes: ResMut<Ass
     let player_y = boat.state.position.1 as f32;
     commands.spawn((MaterialMesh2dBundle{
         mesh: meshes.add(shape::Circle::new(hunger.0 as f32).into()).into(),
-        material: materials.add(ColorMaterial::from(Color::ORANGE)),
+        material: materials.add(Color::rgba(0.3, 0.3, 0.5, 0.5).into()),
         transform: Transform::from_translation(Vec3::new(player_x, player_y, 0.)),
         ..default()},
         HungerCircle{}));
