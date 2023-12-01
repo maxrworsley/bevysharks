@@ -49,7 +49,3 @@ impl State {
         }
     }
 }
-
-#[derive(Component)]
-pub struct Hunger(pub f64);
-

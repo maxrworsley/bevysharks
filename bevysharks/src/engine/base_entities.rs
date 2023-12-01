@@ -1,17 +1,17 @@
 use bevy::prelude::Component;
-use crate::base_components::{State, Position, Hunger};
+use crate::base_components::{State, Position};
 
 #[derive(Component)]
 pub struct Boat {
     pub state: State, 
-    pub hunger: Hunger
+    pub hunger: f64
 }
 
 impl Boat {
     pub fn new() -> Boat {
         Boat {
             state: State::new(),
-            hunger: Hunger { 0: 10.}
+            hunger: 10.
         }
     }
 }
