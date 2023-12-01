@@ -9,18 +9,16 @@ pub fn spawn_sharks(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mu
     if fish_query.iter().count() < base_components::MAX_FISH_COUNT {
         let window_width_half = window.single().width() / 2.;
         let window_height_half = window.single().height() / 2.;
-        let mut rng = rand::thread_rng();
-        let x = rng.gen_range(-window_width_half..window_width_half);
-        let y = rng.gen_range(-window_height_half..window_height_half);
+
+        let position = base_components::Position::new_in_bounds(window_width_half as f64, window_height_half as f64);
         commands.spawn((
             MaterialMesh2dBundle {
                 mesh: meshes.add(shape::Quad::new(Vec2::new(10., 40.)).into()).into(),
                 material: materials.add(ColorMaterial::from(Color::RED)),
-                transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
+                transform: Transform::from_translation(Vec3::new(position.0 as f32, position.1 as f32, 0.)),
                 ..default()
             },
-            base_entities::Shark {
-                state: base_components::State::from_position(base_components::Position(x as f64, y as f64)) }
+            base_entities::Shark::from_position(position)
         ));
     }
 }

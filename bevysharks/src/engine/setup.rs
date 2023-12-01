@@ -1,5 +1,5 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
-use crate::engine::{base_entities, base_components};
+use crate::engine::base_entities;
 
 pub fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>) {
     commands.spawn(Camera2dBundle::default());
@@ -12,9 +12,6 @@ pub fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut mater
             transform: Transform::from_translation(Vec3::new(0., 0., 1.)),
             ..default()
         },
-        base_entities::Boat {
-            state: base_components::State::new(),
-            hunger: base_components::Hunger(10.),
-        },
+        base_entities::Boat::new()
     ));
 }
