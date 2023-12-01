@@ -5,8 +5,9 @@ use rand::Rng;
 
 const MAX_SHARK_VELOCITY: f64 = 90.;
 const MAX_PLAYER_VELOCITY: f64 = 60.;
-const MAX_PLAYER_ACCELERATION: f64 = 3.;
-const PLAYER_CHANGE_VELOCITY: f64 = 10.;
+const MAX_PLAYER_ACCELERATION: f64 = 5.;
+const PLAYER_CHANGE_VELOCITY: f64 = 20.;
+const MAX_FISH_COUNT: usize = 10;
 
 fn main() {
     App::new()
@@ -29,7 +30,7 @@ fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials
         MaterialMesh2dBundle {
             mesh: meshes.add(shape::Circle::new(5.).into()).into(),
             material: materials.add(ColorMaterial::from(Color::GREEN)),
-            transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
+            transform: Transform::from_translation(Vec3::new(0., 0., 1.)),
             ..default()
         },
         Boat {state: State {
@@ -46,7 +47,7 @@ fn setup(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials
         MaterialMesh2dBundle {
             mesh: meshes.add(shape::Quad::new(Vec2::new(10., 40.)).into()).into(),
             material: materials.add(ColorMaterial::from(Color::RED)),
-            transform: Transform::from_translation(Vec3::new(200., 0., 0.)),
+            transform: Transform::from_translation(Vec3::new(200., 0., 2.)),
             ..default()
         },
         Shark {state: State {position: Position(-300., -300.), velocity: Velocity(10., 10.)}},
@@ -148,7 +149,7 @@ fn move_sharks(time: Res<Time>, mut shark_query: Query<(&mut Shark, &mut Transfo
 fn spawn_fish(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>, 
     fish_query: Query<&Fish>, window: Query<&Window>) {
 
-    if fish_query.iter().count() < 10 {
+    if fish_query.iter().count() < MAX_FISH_COUNT {
         let window_width_half = window.single().width() / 2.;
         let window_height_half = window.single().height() / 2.;
         let mut rng = rand::thread_rng();
@@ -158,7 +159,7 @@ fn spawn_fish(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut mate
             MaterialMesh2dBundle {
                 mesh: meshes.add(shape::Quad::new(Vec2::new(10., 10.)).into()).into(),
                 material: materials.add(ColorMaterial::from(Color::BLUE)),
-                transform: Transform::from_translation(Vec3::new(x, y, 0.)),
+                transform: Transform::from_translation(Vec3::new(x, y, 1.)),
                 ..default()
             },
             Fish {state: State {position: Position(x as f64, y as f64), velocity: Velocity(0., 0.)}},
@@ -169,7 +170,7 @@ fn spawn_fish(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut mate
 fn spawn_sharks(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>, 
     fish_query: Query<&Fish>, window: Query<&Window>) {
 
-    if fish_query.iter().count() < 10 {
+    if fish_query.iter().count() < MAX_FISH_COUNT {
         let window_width_half = window.single().width() / 2.;
         let window_height_half = window.single().height() / 2.;
         let mut rng = rand::thread_rng();
@@ -187,11 +188,28 @@ fn spawn_sharks(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut ma
     }
 }
 
-fn update_hunger(time: Res<Time>, mut boat_query: Query<&mut Boat>) {
+fn update_hunger(time: Res<Time>, mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>, 
+    mut boat_query: Query<&mut Boat>, mut hunger_query: Query<(Entity, With<HungerCircle>)>) {
+    // Remove old hunger circles
+    for (entity, _) in hunger_query.iter_mut() {
+        commands.entity(entity).despawn();
+    }
     let time_delta = time.delta_seconds_f64();
-    boat_query.single_mut().hunger.0 -= time_delta;
+    let mut boat = boat_query.single_mut();
+    boat.hunger.0 -= time_delta;
 
-    let hunger = &boat_query.single_mut().hunger;
+    let hunger = &boat.hunger;
+    // Render hunger in the form of a circle centered around the player
+
+    let player_x = boat.state.position.0 as f32;
+    let player_y = boat.state.position.1 as f32;
+    commands.spawn((MaterialMesh2dBundle{
+        mesh: meshes.add(shape::Circle::new(hunger.0 as f32).into()).into(),
+        material: materials.add(ColorMaterial::from(Color::ORANGE)),
+        transform: Transform::from_translation(Vec3::new(player_x, player_y, 0.)),
+        ..default()},
+        HungerCircle{}));
+
     if hunger.0 <= 0. {
         boat_query.single_mut().hunger.0 = 0.;
         println!("You died of hunger!");
@@ -226,3 +244,6 @@ struct Fish{state: State}
 
 #[derive(Component)]
 struct GameOver;
+
+#[derive(Component)]
+struct HungerCircle;
