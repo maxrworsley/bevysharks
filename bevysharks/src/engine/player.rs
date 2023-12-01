@@ -1,9 +1,8 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
-use crate::engine::{base_entities, base_components};
+use crate::engine::base_entities::{Boat, Fish, HungerCircle};
 
 pub fn move_player(time: Res<Time>, mut commands: Commands, input: Res<Input<KeyCode>>, 
-    mut player_query: Query<(&mut base_entities::Boat, &mut Transform)>, 
-    mut fish_query: Query<(Entity, &base_entities::Fish)>) {
+    mut player_query: Query<(&mut Boat, &mut Transform)>, mut fish_query: Query<(Entity, &Fish)>) {
     let time_delta = time.delta_seconds_f64();
     let (mut player, mut transform) = player_query.single_mut();
 
@@ -43,7 +42,7 @@ pub fn move_player(time: Res<Time>, mut commands: Commands, input: Res<Input<Key
 }
 
 pub fn update_hunger(time: Res<Time>, mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>, 
-    mut boat_query: Query<&mut base_entities::Boat>, mut hunger_query: Query<(Entity, With<base_entities::HungerCircle>)>) {
+    mut boat_query: Query<&mut Boat>, mut hunger_query: Query<(Entity, With<HungerCircle>)>) {
 
     let time_delta = time.delta_seconds_f64();
     let mut boat = boat_query.single_mut();
@@ -59,7 +58,7 @@ pub fn update_hunger(time: Res<Time>, mut commands: Commands, mut meshes: ResMut
     }
 }
 
-fn spawn_hunger_circle(commands: &mut Commands, meshes: &mut ResMut<Assets<Mesh>>, materials: &mut ResMut<Assets<ColorMaterial>>, boat: &base_entities::Boat, hunger: &f64) {
+fn spawn_hunger_circle(commands: &mut Commands, meshes: &mut ResMut<Assets<Mesh>>, materials: &mut ResMut<Assets<ColorMaterial>>, boat: &Boat, hunger: &f64) {
     commands.spawn((MaterialMesh2dBundle{
         mesh: meshes.add(shape::Circle::new(*hunger as f32).into()).into(),
         material: materials.add(Color::rgba(0.3, 0.3, 0.5, 0.5).into()),
@@ -67,5 +66,5 @@ fn spawn_hunger_circle(commands: &mut Commands, meshes: &mut ResMut<Assets<Mesh>
             Vec3::new(boat.state.position.0 as f32, boat.state.position.1 as f32, 0.)
         ),
         ..default()},
-        base_entities::HungerCircle));
+        HungerCircle));
 }
