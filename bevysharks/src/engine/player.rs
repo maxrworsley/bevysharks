@@ -1,5 +1,6 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use crate::engine::base_entities::{Boat, Fish, HungerCircle};
+use crate::engine::geometry_functions::objects_are_touching;
 
 pub fn move_player(time: Res<Time>, mut commands: Commands, input: Res<Input<KeyCode>>, 
     mut player_query: Query<(&mut Boat, &mut Transform)>, mut fish_query: Query<(Entity, &Fish)>) {
@@ -29,13 +30,9 @@ pub fn move_player(time: Res<Time>, mut commands: Commands, input: Res<Input<Key
 
     // Remove fish if player collides with them
     for (fish_entity, fish) in fish_query.iter_mut() {
-        if fish.state.position.0 - player.state.position.0 < 10. && 
-        fish.state.position.0 - player.state.position.0 > -10. && 
-        fish.state.position.1 - player.state.position.1 < 10. && 
-        fish.state.position.1 - player.state.position.1 > -10. {
+        if objects_are_touching(&player.state.position, 2., &fish.state.position, 1.) {
             commands.entity(fish_entity).despawn(); 
             player.hunger += 8.;
-            break;
         }
 
     }

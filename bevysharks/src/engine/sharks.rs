@@ -1,6 +1,7 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use crate::engine::base_entities::{Fish, Shark, Boat};
 use crate::engine::base_components::{Position, MAX_FISH_COUNT, MAX_SHARK_VELOCITY};
+use crate::engine::geometry_functions::objects_are_touching;
 use rand::Rng;
 
 
@@ -49,10 +50,7 @@ pub fn move_sharks(time: Res<Time>, mut shark_query: Query<(&mut Shark, &mut Tra
         transform.rotation = Quat::from_rotation_z(angle as f32 - (std::f32::consts::PI / 2.));
 
         // If shark is touching player, kill player
-        if shark.state.position.0 - player.state.position.0 < 10. &&
-        shark.state.position.0 - player.state.position.0 > -10. &&
-        shark.state.position.1 - player.state.position.1 < 10. &&
-        shark.state.position.1 - player.state.position.1 > -10. {
+        if objects_are_touching(&shark.state.position, 1., &player.state.position, 5.) {
             println!("You died!");
         }
     }

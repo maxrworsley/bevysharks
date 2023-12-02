@@ -4,3 +4,4 @@ pub mod sharks;
 pub mod fish;
 pub mod player;
 pub mod setup;
+pub mod geometry_functions;
