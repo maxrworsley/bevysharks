@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use crate::engine::base_entities::{Fish, Shark, Boat};
 use crate::engine::base_components::{Position, MAX_FISH_COUNT, MAX_SHARK_VELOCITY};
 use crate::engine::geometry_functions::objects_are_touching;
-use rand::Rng;
+use crate::engine::geometry_functions::get_distance;
 
 
 pub fn spawn_sharks(mut commands: Commands, asset_server: Res<AssetServer>, fish_query: Query<&Fish>, window: Query<&Window>) {
@@ -26,9 +26,15 @@ pub fn move_sharks(time: Res<Time>, mut shark_query: Query<(&mut Shark, &mut Tra
     let player = player_query.single();
     let time_delta = time.delta_seconds_f64();
     let mut rng = rand::thread_rng();
+    let shark_count = shark_query.iter().count();
 
     // Move sharks to face the player and move forwards
     for (mut shark, mut transform) in shark_query.iter_mut() {
+        if get_distance(&shark.state.position, &player.state.position) > 300. {
+            shark.state.velocity.0 = 0.;
+            shark.state.velocity.1 = 0.;
+            continue;
+        }
         shark.state.position.0 += shark.state.velocity.0 * time_delta;
         shark.state.position.1 += shark.state.velocity.1 * time_delta;
 
@@ -39,7 +45,7 @@ pub fn move_sharks(time: Res<Time>, mut shark_query: Query<(&mut Shark, &mut Tra
         shark.state.velocity.0 += -(angle.cos() * MAX_SHARK_VELOCITY) as f64;
         shark.state.velocity.1 += -(angle.sin() * MAX_SHARK_VELOCITY) as f64;
         // cap velocity
-        let per_shark_velocity_cap = MAX_SHARK_VELOCITY * ( rng.gen_range(1..10) as f64 / 10.) as f64;
+        let per_shark_velocity_cap = 0.05 * MAX_SHARK_VELOCITY * shark_count as f64;
         if shark.state.velocity.0 > per_shark_velocity_cap {shark.state.velocity.0 = per_shark_velocity_cap;}
         if shark.state.velocity.0 < -per_shark_velocity_cap {shark.state.velocity.0 = -per_shark_velocity_cap;}
         if shark.state.velocity.1 > per_shark_velocity_cap {shark.state.velocity.1 = per_shark_velocity_cap;}
