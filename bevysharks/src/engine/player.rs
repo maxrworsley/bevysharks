@@ -20,6 +20,13 @@ pub fn move_player(time: Res<Time>, mut commands: Commands, input: Res<Input<Key
     if input.pressed(KeyCode::D) {
         acceleration.x += 10.;
     }
+    // Add drag to directions that haven't been pressed
+    if !input.pressed(KeyCode::W) && !input.pressed(KeyCode::S) {
+        acceleration.y -= player.state.velocity.1 as f32 * 4.;
+    }
+    if !input.pressed(KeyCode::A) && !input.pressed(KeyCode::D) {
+        acceleration.x -= player.state.velocity.0 as f32 * 4.;
+    }
 
     player.state.apply_acceleration(acceleration.x as f64, acceleration.y  as f64, time_delta);
     player.state.apply_acceleration_to_velocity(time_delta);
