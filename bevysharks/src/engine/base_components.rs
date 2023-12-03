@@ -57,6 +57,17 @@ impl State {
     }
 
     pub fn apply_acceleration(&mut self, change_x: f64, change_y: f64, time_delta: f64) {
+        if change_x == 0. {
+            if self.acceleration.0 > 0. {
+                self.acceleration.0 *= 50. * time_delta * CHANGE_FACTOR;
+                if self.acceleration.0 < 0. {self.acceleration.0 = 0.;}
+            }
+        }
+        if change_y == 0. {
+            if self.acceleration.1 > 0. {
+                self.acceleration.1 *= 50. * time_delta * CHANGE_FACTOR;
+            }
+        }
         self.acceleration.0 += change_x * time_delta * CHANGE_FACTOR;
         self.acceleration.1 += change_y * time_delta * CHANGE_FACTOR;
         if self.acceleration.0 > self.max_acceleration {self.acceleration.0 = self.max_acceleration;}
@@ -74,7 +85,11 @@ impl State {
         if self.velocity.1 < -self.max_velocity {self.velocity.1 = -self.max_velocity;}
     }
 
-    pub fn apply_velocity_to_position(&mut self, time_delta: f64) {
+    pub fn apply_velocity_to_position(&mut self, time_delta: f64, x_bound: f64, y_bound: f64) {
+        if self.position.0 > x_bound {self.position.0 = -x_bound;}
+        if self.position.0 < -x_bound {self.position.0 = x_bound;}
+        if self.position.1 > y_bound {self.position.1 = -y_bound;}
+        if self.position.1 < -y_bound {self.position.1 = y_bound;}
         self.position.0 += self.velocity.0 * time_delta * CHANGE_FACTOR;
         self.position.1 += self.velocity.1 * time_delta * CHANGE_FACTOR;
     }

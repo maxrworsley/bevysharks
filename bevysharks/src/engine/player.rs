@@ -3,9 +3,11 @@ use crate::engine::base_entities::{Boat, Fish, HungerCircle};
 use crate::engine::geometry_functions::objects_are_touching;
 
 pub fn move_player(time: Res<Time>, mut commands: Commands, input: Res<Input<KeyCode>>, 
-    mut player_query: Query<(&mut Boat, &mut Transform)>, mut fish_query: Query<(Entity, &Fish)>) {
+    mut player_query: Query<(&mut Boat, &mut Transform)>, mut fish_query: Query<(Entity, &Fish)>, window: Query<&Window>) {
     let time_delta = time.delta_seconds_f64();
     let (mut player, mut transform) = player_query.single_mut();
+    let window_width_half = window.single().width() / 2.;
+    let window_height_half = window.single().height() / 2.;
 
     let mut acceleration = Vec2::ZERO;
     if input.pressed(KeyCode::W) {
@@ -23,7 +25,7 @@ pub fn move_player(time: Res<Time>, mut commands: Commands, input: Res<Input<Key
 
     player.state.apply_acceleration(acceleration.x as f64, acceleration.y  as f64, time_delta);
     player.state.apply_acceleration_to_velocity(time_delta);
-    player.state.apply_velocity_to_position(time_delta);
+    player.state.apply_velocity_to_position(time_delta, window_width_half as f64, window_height_half as f64);
     
     transform.translation.x = player.state.position.0 as f32;
     transform.translation.y = player.state.position.1 as f32;
@@ -37,7 +39,7 @@ pub fn move_player(time: Res<Time>, mut commands: Commands, input: Res<Input<Key
 
     // Remove fish if player collides with them
     for (fish_entity, fish) in fish_query.iter_mut() {
-        if objects_are_touching(&player.state.position, 2., &fish.state.position, 1.) {
+        if objects_are_touching(&player.state.position, 8., &fish.state.position, 1.) {
             commands.entity(fish_entity).despawn(); 
             player.hunger += 8.;
         }
