@@ -21,19 +21,19 @@ pub fn move_player(time: Res<Time>, mut commands: Commands, input: Res<Input<Key
         acceleration.x += 10.;
     }
 
-    // Rotate sprite to face direction of movement
-    if player.state.velocity.0 != 0. || player.state.velocity.1 != 0. {
-        transform.rotation = Quat::from_rotation_z(
-            ((player.state.velocity.1).atan2(player.state.velocity.0) + std::f64::consts::PI) as f32
-        );
-    }
-
     player.state.apply_acceleration(acceleration.x as f64, acceleration.y  as f64, time_delta);
     player.state.apply_acceleration_to_velocity(time_delta);
     player.state.apply_velocity_to_position(time_delta);
     
     transform.translation.x = player.state.position.0 as f32;
     transform.translation.y = player.state.position.1 as f32;
+
+    // Rotate sprite to face direction of movement
+    if player.state.velocity.0 != 0. || player.state.velocity.1 != 0. {
+        transform.rotation = Quat::from_rotation_z(
+            ((player.state.velocity.1).atan2(player.state.velocity.0) + std::f64::consts::PI) as f32
+        );
+    }
 
     // Remove fish if player collides with them
     for (fish_entity, fish) in fish_query.iter_mut() {
