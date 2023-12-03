@@ -54,7 +54,7 @@ pub fn move_sharks(time: Res<Time>, mut shark_query: Query<(&mut Shark, &mut Tra
         transform.rotation = Quat::from_rotation_z(angle as f32);
 
         // If shark is touching player, kill player
-        if objects_are_touching(&shark.state.position, 1., &player.state.position, 5.) {
+        if objects_are_touching(&shark.state.position, 1., &player.state.position, 1.) {
             next_state.set(GameState::GameOver);
             break;
         }

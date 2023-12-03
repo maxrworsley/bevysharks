@@ -1,6 +1,7 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use crate::engine::base_entities::{Boat, Fish, HungerCircle};
 use crate::engine::geometry_functions::objects_are_touching;
+use super::base_components::GameState;
 
 pub fn move_player(time: Res<Time>, mut commands: Commands, input: Res<Input<KeyCode>>, 
     mut player_query: Query<(&mut Boat, &mut Transform)>, mut fish_query: Query<(Entity, &Fish)>, window: Query<&Window>) {
@@ -48,7 +49,7 @@ pub fn move_player(time: Res<Time>, mut commands: Commands, input: Res<Input<Key
 }
 
 pub fn update_hunger(time: Res<Time>, mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>, 
-    mut boat_query: Query<&mut Boat>, mut hunger_query: Query<(Entity, With<HungerCircle>)>) {
+    mut boat_query: Query<&mut Boat>, mut hunger_query: Query<(Entity, With<HungerCircle>)>, mut next_state: ResMut<NextState<GameState>>) {
 
     let time_delta = time.delta_seconds_f64();
     let mut boat = boat_query.single_mut();
@@ -59,8 +60,7 @@ pub fn update_hunger(time: Res<Time>, mut commands: Commands, mut meshes: ResMut
     spawn_hunger_circle(&mut commands, &mut meshes, &mut materials, &boat, &boat.hunger);
 
     if boat.hunger <= 0. {
-        boat_query.single_mut().hunger = 0.;
-        println!("You died of hunger!");
+        next_state.set(GameState::GameOver);
     }
 }
 
