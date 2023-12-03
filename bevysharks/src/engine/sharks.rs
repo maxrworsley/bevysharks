@@ -1,22 +1,19 @@
-use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
+use bevy::prelude::*;
 use crate::engine::base_entities::{Fish, Shark, Boat};
 use crate::engine::base_components::{Position, MAX_FISH_COUNT, MAX_SHARK_VELOCITY};
 use crate::engine::geometry_functions::objects_are_touching;
 use rand::Rng;
 
 
-pub fn spawn_sharks(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>, 
-    fish_query: Query<&Fish>, window: Query<&Window>) {
-
+pub fn spawn_sharks(mut commands: Commands, asset_server: Res<AssetServer>, fish_query: Query<&Fish>, window: Query<&Window>) {
     if fish_query.iter().count() < MAX_FISH_COUNT {
         let window_width_half = window.single().width() / 2.;
         let window_height_half = window.single().height() / 2.;
 
         let position = Position::new_in_bounds(window_width_half as f64, window_height_half as f64);
         commands.spawn((
-            MaterialMesh2dBundle {
-                mesh: meshes.add(shape::Quad::new(Vec2::new(10., 40.)).into()).into(),
-                material: materials.add(ColorMaterial::from(Color::RED)),
+            SpriteBundle {
+                texture: asset_server.load("shark_v1.png"),
                 transform: Transform::from_translation(Vec3::new(position.0 as f32, position.1 as f32, 0.)),
                 ..default()
             },
@@ -47,7 +44,7 @@ pub fn move_sharks(time: Res<Time>, mut shark_query: Query<(&mut Shark, &mut Tra
         if shark.state.velocity.0 < -per_shark_velocity_cap {shark.state.velocity.0 = -per_shark_velocity_cap;}
         if shark.state.velocity.1 > per_shark_velocity_cap {shark.state.velocity.1 = per_shark_velocity_cap;}
         if shark.state.velocity.1 < -per_shark_velocity_cap {shark.state.velocity.1 = -per_shark_velocity_cap;}
-        transform.rotation = Quat::from_rotation_z(angle as f32 - (std::f32::consts::PI / 2.));
+        transform.rotation = Quat::from_rotation_z(angle as f32);
 
         // If shark is touching player, kill player
         if objects_are_touching(&shark.state.position, 1., &player.state.position, 5.) {
