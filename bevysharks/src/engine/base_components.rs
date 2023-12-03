@@ -1,4 +1,4 @@
-use bevy::prelude::Component;
+use bevy::prelude::{Component, States};
 use rand::Rng;
 
 pub const MAX_SHARK_VELOCITY: f64 = 90.;
@@ -6,6 +6,13 @@ pub const MAX_PLAYER_VELOCITY: f64 = 20.;
 pub const MAX_PLAYER_ACCELERATION: f64 = 9.;
 pub const MAX_FISH_COUNT: usize = 10;
 pub const CHANGE_FACTOR: f64 = 8.;
+
+#[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
+pub enum GameState {
+    #[default]
+    InGame,
+    GameOver,
+}
 
 // Components
 #[derive(Component)]

@@ -4,6 +4,8 @@ use crate::engine::base_components::{Position, MAX_FISH_COUNT, MAX_SHARK_VELOCIT
 use crate::engine::geometry_functions::objects_are_touching;
 use crate::engine::geometry_functions::get_distance;
 
+use super::base_components::GameState;
+
 
 pub fn spawn_sharks(mut commands: Commands, asset_server: Res<AssetServer>, fish_query: Query<&Fish>, window: Query<&Window>) {
     if fish_query.iter().count() < MAX_FISH_COUNT {
@@ -22,10 +24,9 @@ pub fn spawn_sharks(mut commands: Commands, asset_server: Res<AssetServer>, fish
     }
 }
 
-pub fn move_sharks(time: Res<Time>, mut shark_query: Query<(&mut Shark, &mut Transform)>, player_query: Query<&Boat>) {
+pub fn move_sharks(time: Res<Time>, mut shark_query: Query<(&mut Shark, &mut Transform)>, player_query: Query<&Boat>, mut next_state: ResMut<NextState<GameState>>,) {
     let player = player_query.single();
     let time_delta = time.delta_seconds_f64();
-    let mut rng = rand::thread_rng();
     let shark_count = shark_query.iter().count();
 
     // Move sharks to face the player and move forwards
@@ -54,7 +55,8 @@ pub fn move_sharks(time: Res<Time>, mut shark_query: Query<(&mut Shark, &mut Tra
 
         // If shark is touching player, kill player
         if objects_are_touching(&shark.state.position, 1., &player.state.position, 5.) {
-            println!("You died!");
+            next_state.set(GameState::GameOver);
+            break;
         }
     }
 }
